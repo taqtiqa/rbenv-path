@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+#
+# Summary: Replace a path in PATH with another path
+#
+# Usage: rbenv path repplace <this/path> <with/this/path>
+#
+# Replace a path in PATH with another path.
+#
+# Example:
+#
+#   $ echo $PATH
+#   /usr/bin:/usr/local/bin
+#   $ rbenv path replace /usr/local/sbin /home/user/bin
+#   $ echo $PATH
+#   /usr/bin:/home/user/bin:/usr/local/bin
+
+# Sources:
+#  - http://stackoverflow.com/questions/273909/how-do-i-manipulate-path-elements-in-shell-scripts/11939195#11939195
+
+# Show usage text when wrong number of arguments are passed
+if [ $# -lt 2 ] || [ $# -gt 2 ]; then
+  echo 'That is not a valid argument to pass to: rbenv path replace'
+  rbenv-help --usage path >&2
+  exit 1
+fi
+
+cd $RBENV_ROOT/plugins/rbenv-path/bin
+. ./rbenv-path-env
+. ./rbenv-path-shared
+cd - >/dev/null
+
+path_replace(){
+    local dirs=":${PATH}:";
+    if [ "${dirs/:$1:/:}" != "$dirs" ] ; then
+        PATH="${dirs/:$1:/:$2:}";
+        PATH="${PATH/#:/}";
+        export PATH="${PATH/%:/}";
+    fi
+}
+
+path_replace $1 $2

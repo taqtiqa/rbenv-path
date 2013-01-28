@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+#
+# Summary: Utilities for rbenv plugin authors manage the PATH env. variable.
+#
+# Usage: rbenv help --usage path
+#
+# Utility functions to manage elements of the environment variable PATH.
+# Primarily intended for rbenv plugin developers.
+# Available path commands are:
+#  - append
+#  - delete
+#  - list
+#  - prepend
+#  - remove
+#  - replace
+#  - version
+
+export RBENV_PLUGIN_NAME=path
+export RBENV_PLUGIN_VERSION="0.0.0"
+export RBENV_PLUGIN_BY="Mark Van de Vyver <mark@taqtiqa.com>"
+export RBENV_PLUGIN_SOURCE="https://github.com/taqtiqa-mark/rbenv-$RBENV_PLUGIN_NAME"
+
+. rbenv-path-env
+
+# Provide rbenv completions
+if [ "$1" = "--complete" ]; then
+  echo "append"
+  echo "delete"
+  echo "list"
+  echo "prepend"
+  echo "remove"
+  echo "replace"
+  echo "version"
+  exit
+fi
+
+if [ "x$1" = "x" ]; then
+  padding='  '
+  echo "Available $RBENV_PLUGIN_NAME commands are:"
+  echo "${padding}append"
+  echo "${padding}delete"
+  echo "${padding}list"
+  echo "${padding}prepend"
+  echo "${padding}remove"
+  echo "${padding}replace"
+  echo "${padding}version"
+  exit
+fi
+
+command="$1"
+command_path="$(command -v "rbenv-path-$command" || true)"
+
+# We could be called from the installer script which may not
+# yet setup the PATH. But does move into the correct folder.
+if [ -z "$command_path" ]; then
+ if [ -f "${RBENV_PLUGIN_ROOT}/bin/rbenv-$RBENV_PLUGIN_NAME-$command" ]; then
+   command_path="${RBENV_PLUGIN_ROOT}/bin/rbenv-$RBENV_PLUGIN_NAME-$command"
+ else
+   echo "Could not find the plugin executable: ${RBENV_PLUGIN_ROOT}/bin/rbenv-$RBENV_PLUGIN_NAME-$command"
+   exit 1
+ fi
+fi
+
+# https://github.com/jimeh/dotfiles/blob/master/shell/helpers/path_helpers.sh
+# http://stackoverflow.com/a/10052060/152860
+if [ -z "$command_path" ]; then
+  { echo "version ${RBENV_PLUGIN_VERSION}"
+    echo "${0##*/} [command] [options]"
+    echo
+    echo "possible commands are:"
+    echo "  append <this> [after/this]" # http://stackoverflow.com/a/11939195/152860
+    echo "  delete <this/path>"
+    echo "  list"
+    echo "  prepend <this> [before/this]"
+    echo "  remove <this/path>" # http://stackoverflow.com/a/11939195/152860 http://stackoverflow.com/a/294025/152860
+    echo "  replace <this/path> <with/this>" # http://stackoverflow.com/a/11939195/152860 http://stackoverflow.com/a/294025/152860
+    echo "  version"
+    echo
+    echo "For full documentation, see: $RBENV_PLUGIN_SOURCE"
+  } >&2
+  exit 1
+fi
+
+shift
+exec "$command_path" "$@"

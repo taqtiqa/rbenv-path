@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+#
+# Summary: Add a path to PATH before another path, or prepend to the beginning of PATH
+#
+# Usage: rbenv path prepend <this/path> [before/this/path]
+#
+# If one argument given, prepend specified path to the beginning of PATH.
+#  - $1: path to add
+# If $1 already exists it is first removed, and then added to the beginning of PATH.
+#
+# Example:
+#
+#   $ echo $PATH
+#   /usr/bin:/usr/local/bin
+#   $ rebnv path prepend /usr/sbin
+#   $ echo $PATH
+#   /usr/sbin:/usr/bin:/usr/local/bin
+#
+# If two arguments given, add a path to PATH before another path.
+#  - $1: path to add
+#  - $2: target path to add $1 before
+# If $1 already exists in PATH it is first removed, and then added before $2.
+#
+# Example:
+#
+#   $ echo $PATH
+#   /usr/bin:/usr/local/bin
+#   $ rbenv path prepend /usr/local/sbin /usr/local/bin
+#   $ echo $PATH
+#   /usr/bin:/usr/local/sbin:/usr/local/bin
+#
+
+# Sources:
+#  - http://stackoverflow.com/questions/273909/how-do-i-manipulate-path-elements-in-shell-scripts
+#  - https://github.com/jimeh/dotfiles/blob/master/shell/helpers/path_helpers.sh
+
+# Show usage text when wrong number of arguments are passed
+if [ $# -eq 0 ] || [ $# -gt 2 ]; then
+  echo 'That is not a valid argument to pass to: rbenv path prepend'
+  rbenv help path-prepend >&2
+  exit 1
+fi
+
+cd $RBENV_ROOT/plugins/rbenv-path/bin
+. ./rbenv-path-env
+. ./rbenv-path-shared
+cd - >/dev/null
+
+path_prepend () {
+    path_remove $1
+    export PATH="$1:$PATH"
+}
+
+path_prepend_before () {
+    if [[ ":$PATH:" == *":$2:"* ]]; then
+        path_remove $1
+        local dirs=":$PATH:"
+        dirs=${dirs/:$2:/:$1:$2:}
+        export PATH="$(__path_clean $dirs)"
+        return 0
+    fi
+    return 1
+}
+
+if [ $# -eq 2 ]; then
+  path_prepend_before $1 $2
+else
+  path_prepend $1
+fi

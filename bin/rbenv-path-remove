@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+#
+# Summary: Remove a path from PATH
+#
+# Usage: rbenv path remove <this/path>
+#
+# Remove specified path from PATH.
+# Example:
+#
+#   $ echo $PATH
+#   /usr/bin:/usr/local/sbin:/usr/local/bin
+#   $ rbenv path remove /usr/local/sbin
+#   $ echo $PATH
+#   /usr/bin:/usr/local/bin
+#
+
+# Show usage text when wrong number of arguments are passed
+if [ $# -eq 0 ] || [ $# -gt 1 ]; then
+  echo 'That is not a valid argument to pass to: rbenv path remove'
+  rbenv help path-remove >&2
+  exit 1
+fi
+
+cd $RBENV_ROOT/plugins/rbenv-path/bin
+. ./rbenv-path-env
+. ./rbenv-path-shared
+cd - >/dev/null
+
+path_remove $1
