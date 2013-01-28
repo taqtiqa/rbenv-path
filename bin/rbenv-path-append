@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# Summary: Add a path to PATH after another path, or append to the end of PATH
+#
+# Usage: rbenv path append <this/path> [after/this/path]
+#
+# If one argument given, append specified path to the end of PATH:
+#  - $1: path to add
+# If $1 already exists in PATH it is first removed, and then added to the end of PATH.
+#
+# Example:
+#
+#   $ echo $PATH
+#   /usr/bin:/usr/local/bin
+#   $ rbenv path append /usr/sbin
+#   $ echo $PATH
+#   /usr/bin:/usr/local/bin:/usr/sbin
+#
+# If two arguments given, add a path to PATH after another path:
+#  - $1: path to add
+#  - $2: target path to add $1 after
+# If $1 already exists in PATH it is first removed, and then added after $2.
+#
+# Example:
+#
+#   $ echo $PATH
+#   /usr/bin:/usr/local/bin
+#   $ rbenv path append /usr/local/sbin /usr/local/bin
+#   $ echo $PATH
+#   /usr/bin:/usr/local/bin:/usr/local/sbin
+#
+
+# Sources:
+#  - http://stackoverflow.com/questions/273909/how-do-i-manipulate-path-elements-in-shell-scripts
+#  - https://github.com/jimeh/dotfiles/blob/master/shell/helpers/path_helpers.sh
+
+# Show usage text when wrong number of arguments are passed
+if [ $# -eq 0 ] || [ $# -gt 2 ]; then
+  echo 'That is not a valid argument to pass to: rbenv path append'
+  rbenv-help --usage path >&2
+  exit 1
+fi
+
+cd $RBENV_ROOT/plugins/rbenv-path/bin
+. ./rbenv-path-env
+. ./rbenv-path-shared
+cd - >/dev/null
+
+path_append () {
+    path_remove $1
+    export PATH="$PATH:$1"
+}
+
+path_append_after () {
+    if [[ ":$PATH:" == *":$2:"* ]]; then
+        path_remove $1
+        local dirs=":$PATH:"
+        dirs=${dirs/:$2:/:$2:$1:}
+        export PATH="$(__path_clean $dirs)"
+        return 0
+    fi
+    return 1
+}
+
+if [ $# -eq 2 ]; then
+  path_append_after $1 $2
+else
+  path_append $1
+fi

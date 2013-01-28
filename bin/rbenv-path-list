@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+#
+# Summary: Lists each entry in PATH as a newline separated list.
+#
+# Usage: rbenv path list
+#
+# Print PATH as a newline separated list.
+#
+# Example:
+#
+#   $ echo $PATH
+#   /usr/bin:/usr/local/bin
+#   $ rbenv path list
+#   /usr/bin
+#   /usr/local/bin
+
+# Show usage text when wrong number of arguments are passed
+if [ $# -gt 0 ]; then
+  echo 'That is not a valid argument to pass to: rbenv path list'
+  rbenv help path-list >&2
+  exit 1
+fi
+
+cd $RBENV_ROOT/plugins/rbenv-path/bin
+. ./rbenv-path-env
+. ./rbenv-path-shared
+cd - >/dev/null
+
+path_list () {
+    echo -e ${PATH//:/\\n}
+}
+
+path_list
